@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTU Logistique Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e63946, #4b5e6a);
+        }
+
+        .login-container, .dashboard-container, .page {
+            background: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            margin: 80px auto 20px;
+            animation: fadeIn 1s ease-in-out;
+            text-align: center;
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            color: #4b5e6a;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4b5e6a;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #333;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #e63946;
+            box-shadow: 0 0 8px rgba(230, 57, 70, 0.3);
+        }
+
+        .input-group input::placeholder {
+            color: #aaa;
+        }
+
+        .submit-btn, .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #e63946, #b32d38);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover, .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .submit-btn:active, .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #e63946;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar {
+            display: none;
+            background: #4b5e6a;
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar.active {
+            display: block;
+        }
+
+        .navbar .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar ul li {
+            position: relative;
+        }
+
+        .navbar ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 10px;
+            transition: color 0.3s;
+        }
+
+        .navbar ul li a:hover {
+            color: #e63946;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        canvas {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar ul {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background: #4b5e6a;
+                padding: 20px;
+            }
+
+            .navbar ul.active {
+                display: flex;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .login-container, .dashboard-container, .page {
+                padding: 20px;
+                max-width: 90%;
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="hamburger" id="hamburger">☰</div>
+            <ul id="nav-menu">
+                <li><a href="#" onclick="showPage('page1')">Avancement export</a></li>
+                <li><a href="#" onclick="showPage('page2')">Accident de travail</a></li>
+                <li><a href="#" onclick="showPage('page3')">Incident Logistique</a></li>
+                <li><a href="#" onclick="showPage('page4')">Suivi Remplissage Camion</a></li>
+                <li><a href="#" onclick="showPage('page5')">Total Transportation Cost (% vs Sales)</a></li>
+                <li><a href="#" onclick="showPage('page6')">Exceptionnel Transport (Cost)</a></li>
+                <li><a href="#" onclick="showPage('page7')">Customer Service Rate</a></li>
+                <li><a href="#" onclick="showPage('page8')">Taux de Respect Planning</a></li>
+                <li><a href="#" onclick="showPage('page9')">Suivi 5S</a></li>
+                <li><a href="#" onclick="showPage('page10')">Suivi Gemba OJT</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="login-container active" id="login-container">
+        <img src="https://media.licdn.com/dms/image/C510BAQFv4NwvhYRq8Q/company-logo_200_200/0/1519870868642?e=2147483647&v=beta&t=z3V0dxSmuHQVdnDvjOE5MTzQPHT_T-6MpMOs_SrSvYY" alt="CRRE Logo" class="logo">
+        <h2>Login to CRRE</h2>
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="e.g. logistique@wkw.com" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="e.g. logistique123" required>
+        </div>
+        <button class="submit-btn" onclick="handleLogin()">Sign In</button>
+        <div class="forgot-password">
+            <a href="#">Forgot Password?</a>
+        </div>
+    </div>
+    <div class="dashboard-container" id="dashboard">
+        <img src="https://media.licdn.com/dms/image/C510BAQFv4NwvhYRq8Q/company-logo_200_200/0/1519870868642?e=2147483647&v=beta&t=z3V0dxSmuHQVdnDvjOE5MTzQPHT_T-6MpMOs_SrSvYY" alt="CRRE Logo" class="logo">
+        <h2>Tableau de Bord WTU Logistique</h2>
+        <p>Welcome to the WTU Logistique Dashboard</p>
+        <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+    </div>
+    <div class="page" id="page1">
+        <h2>Avancement export</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="article">Article</label>
+                <input type="text" id="article" placeholder="Enter Article">
+            </div>
+            <div class="input-group">
+                <label for="besoin">Besoin</label>
+                <input type="text" id="besoin" placeholder="Enter Besoin">
+            </div>
+            <div class="input-group">
+                <label for="quantite">Quantité P1</label>
+                <input type="number" id="quantite" placeholder="Enter Quantité P1">
+            </div>
+            <div class="input-group">
+                <label for="reste">Reste</label>
+                <input type="number" id="reste" placeholder="Enter Reste">
+            </div>
+            <button class="submit-btn" onclick="submitExportData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="exportChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page2">
+        <h2>Accident de travail</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-accident">Mois</label>
+                <input type="text" id="mois-accident" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-accident">Pourcentage</label>
+                <input type="number" id="pourcentage-accident" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitAccidentData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="accidentChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page3">
+        <h2>Incident Logistique</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-incident">Mois</label>
+                <input type="text" id="mois-incident" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-incident">Pourcentage</label>
+                <input type="number" id="pourcentage-incident" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitIncidentData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="incidentChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page4">
+        <h2>Suivi Remplissage Camion</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-camion">Mois</label>
+                <input type="text" id="mois-camion" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-camion">Pourcentage</label>
+                <input type="number" id="pourcentage-camion" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitCamionData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="camionChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page5">
+        <h2>Total Transportation Cost (% vs Sales)</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-transport-cost">Mois</label>
+                <input type="text" id="mois-transport-cost" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-transport-cost">Pourcentage</label>
+                <input type="number" id="pourcentage-transport-cost" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitTransportCostData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="transportCostChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page6">
+        <h2>Exceptionnel Transport (Cost)</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-exceptionnel">Mois</label>
+                <input type="text" id="mois-exceptionnel" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-exceptionnel">Pourcentage</label>
+                <input type="number" id="pourcentage-exceptionnel" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitExceptionnelData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="exceptionnelChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page7">
+        <h2>Customer Service Rate</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-customer-service">Mois</label>
+                <input type="text" id="mois-customer-service" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-customer-service">Pourcentage</label>
+                <input type="number" id="pourcentage-customer-service" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitCustomerServiceData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="customerServiceChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page8">
+        <h2>Taux de Respect Planning</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-planning">Mois</label>
+                <input type="text" id="mois-planning" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-planning">Pourcentage</label>
+                <input type="number" id="pourcentage-planning" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitPlanningData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="planningChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page9">
+        <h2>Suivi 5S</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-5s">Mois</label>
+                <input type="text" id="mois-5s" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-5s">Pourcentage</label>
+                <input type="number" id="pourcentage-5s" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submit5SData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="fiveSChart" class="user-only"></canvas>
+    </div>
+    <div class="page" id="page10">
+        <h2>Suivi Gemba OJT</h2>
+        <div class="logistique-inputs">
+            <div class="input-group">
+                <label for="mois-gemba">Mois</label>
+                <input type="text" id="mois-gemba" placeholder="Enter Mois">
+            </div>
+            <div class="input-group">
+                <label for="pourcentage-gemba">Pourcentage</label>
+                <input type="number" id="pourcentage-gemba" placeholder="Enter Pourcentage" min="0" max="100">
+            </div>
+            <button class="submit-btn" onclick="submitGembaData()">Submit</button>
+            <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
+        </div>
+        <canvas id="gembaChart" class="user-only"></canvas>
+    </div>
+    <script>
+        let currentChart = null;
+        let userRole = null;
+        let pageCycleInterval = null;
+        let dataStore = {
+            export: { article: 'Article', besoin: 'Besoin', quantite: 10, reste: 10 },
+            accident: { mois: 'Mois', pourcentage: 0 },
+            incident: { mois: 'Mois', pourcentage: 0 },
+            camion: { mois: 'Mois', pourcentage: 0 },
+            transportCost: { mois: 'Mois', pourcentage: 0 },
+            exceptionnel: { mois: 'Mois', pourcentage: 0 },
+            customerService: { mois: 'Mois', pourcentage: 0 },
+            planning: { mois: 'Mois', pourcentage: 0 },
+            fiveS: { mois: 'Mois', pourcentage: 0 },
+            gemba: { mois: 'Mois', pourcentage: 0 }
+        };
+
+        function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginContainer = document.getElementById('login-container');
+            const navbar = document.getElementById('navbar');
+            const dashboard = document.getElementById('dashboard');
+
+            if (email === 'logistique@wkw.com' && password === 'logistique123') {
+                userRole = 'logistique';
+                loginContainer.classList.remove('active');
+                navbar.classList.add('active');
+                dashboard.classList.add('active');
+                document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.user-only').forEach(el => el.style.display = 'none');
+            } else if (email === 'user@wkw.com' && password === 'userwkw') {
+                userRole = 'user';
+                loginContainer.classList.remove('active');
+                navbar.classList.remove('active');
+                dashboard.classList.add('active');
+                document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.user-only').forEach(el => el.style.display = 'block');
+                showDefaultCharts();
+                startPageCycle();
+            } else {
+                alert('Invalid credentials. Please try again.');
+            }
+        }
+
+        function handleLogout() {
+            if (userRole === 'logistique') {
+                document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
+                document.getElementById('navbar').classList.remove('active');
+                document.getElementById('login-container').classList.add('active');
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                if (currentChart) currentChart.destroy();
+                currentChart = null;
+                userRole = null;
+            }
+        }
+
+        function startPageCycle() {
+            if (userRole !== 'user') return;
+            const pages = ['dashboard', 'page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'];
+            let currentIndex = 0;
+
+            function showNextPage() {
+                document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
+                document.getElementById(pages[currentIndex]).classList.add('active');
+                if (['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(pages[currentIndex])) {
+                    showDefaultCharts();
+                }
+                currentIndex = (currentIndex + 1) % pages.length;
+            }
+
+            showNextPage();
+            pageCycleInterval = setInterval(showNextPage, 10000);
+        }
+
+        function showPage(pageId) {
+            if (userRole !== 'logistique') return;
+            document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if (currentChart) currentChart.destroy();
+            currentChart = null;
+            document.querySelectorAll('.logistique-inputs input').forEach(input => input.value = '');
+        }
+
+        function submitExportData() {
+            if (userRole !== 'logistique') return;
+            dataStore.export = {
+                article: document.getElementById('article').value || 'Article',
+                besoin: document.getElementById('besoin').value || 'Besoin',
+                quantite: parseFloat(document.getElementById('quantite').value) || 0,
+                reste: parseFloat(document.getElementById('reste').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitAccidentData() {
+            if (userRole !== 'logistique') return;
+            dataStore.accident = {
+                mois: document.getElementById('mois-accident').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-accident').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitIncidentData() {
+            if (userRole !== 'logistique') return;
+            dataStore.incident = {
+                mois: document.getElementById('mois-incident').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-incident').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitCamionData() {
+            if (userRole !== 'logistique') return;
+            dataStore.camion = {
+                mois: document.getElementById('mois-camion').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-camion').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitTransportCostData() {
+            if (userRole !== 'logistique') return;
+            dataStore.transportCost = {
+                mois: document.getElementById('mois-transport-cost').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-transport-cost').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitExceptionnelData() {
+            if (userRole !== 'logistique') return;
+            dataStore.exceptionnel = {
+                mois: document.getElementById('mois-exceptionnel').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-exceptionnel').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitCustomerServiceData() {
+            if (userRole !== 'logistique') return;
+            dataStore.customerService = {
+                mois: document.getElementById('mois-customer-service').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-customer-service').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitPlanningData() {
+            if (userRole !== 'logistique') return;
+            dataStore.planning = {
+                mois: document.getElementById('mois-planning').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-planning').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submit5SData() {
+            if (userRole !== 'logistique') return;
+            dataStore.fiveS = {
+                mois: document.getElementById('mois-5s').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-5s').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function submitGembaData() {
+            if (userRole !== 'logistique') return;
+            dataStore.gemba = {
+                mois: document.getElementById('mois-gemba').value || 'Mois',
+                pourcentage: parseFloat(document.getElementById('pourcentage-gemba').value) || 0
+            };
+            alert('Data submitted successfully!');
+            if (userRole === 'user') showDefaultCharts();
+        }
+
+        function showDefaultCharts() {
+            if (userRole !== 'user') return;
+
+            if (currentChart) currentChart.destroy();
+            let ctx = document.getElementById('exportChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [dataStore.export.article, dataStore.export.besoin, 'Quantité P1', 'Reste'],
+                    datasets: [{
+                        data: [10, 10, dataStore.export.quantite, dataStore.export.reste],
+                        backgroundColor: ['#e63946', '#b32d38', '#4b5e6a', '#ddd']
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            const chartConfigs = [
+                { id: 'accidentChart', key: 'accident' },
+                { id: 'incidentChart', key: 'incident' },
+                { id: 'camionChart', key: 'camion' },
+                { id: 'transportCostChart', key: 'transportCost' },
+                { id: 'exceptionnelChart', key: 'exceptionnel' },
+                { id: 'customerServiceChart', key: 'customerService' },
+                { id: 'planningChart', key: 'planning' },
+                { id: 'fiveSChart', key: 'fiveS' },
+                { id: 'gembaChart', key: 'gemba' }
+            ];
+
+            chartConfigs.forEach(config => {
+                if (currentChart) currentChart.destroy();
+                const pourcentage = dataStore[config.key].pourcentage;
+                const color = pourcentage === 0 ? '#00ff00' : '#ff0000';
+                ctx = document.getElementById(config.id).getContext('2d');
+                currentChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: [dataStore[config.key].mois],
+                        datasets: [
+                            {
+                                label: 'Pourcentage',
+                                data: [pourcentage],
+                                backgroundColor: color
+                            },
+                            {
+                                label: 'Objectif (0%)',
+                                data: [100 - pourcentage],
+                                backgroundColor: '#ddd'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, max: 100 } }
+                    }
+                });
+            });
+        }
+
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('nav-menu');
+
+        hamburger.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
