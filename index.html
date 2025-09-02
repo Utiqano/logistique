@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WTU Logistique Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1"></script>
     <style>
         * {
             margin: 0;
@@ -20,12 +21,12 @@
 
         .login-container, .dashboard-container, .page {
             background: #fff;
-            padding: 40px;
+            padding: clamp(20px, 4vw, 40px);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 800px;
-            margin: 80px auto 20px;
+            width: 90%;
+            max-width: clamp(800px, 80vw, 1600px);
+            margin: 5vh auto 2vh;
             animation: fadeIn 1s ease-in-out;
             text-align: center;
             display: none;
@@ -41,38 +42,38 @@
         }
 
         .logo {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
+            width: clamp(80px, 10vw, 120px);
+            height: auto;
+            margin-bottom: 2vh;
             border-radius: 10px;
         }
 
         h2 {
-            margin-bottom: 30px;
+            margin-bottom: 2vh;
             color: #4b5e6a;
-            font-size: 24px;
+            font-size: clamp(20px, 3vw, 36px);
             font-weight: 600;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 2vh;
             text-align: left;
         }
 
         .input-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 1vh;
             color: #4b5e6a;
-            font-size: 14px;
+            font-size: clamp(14px, 2vw, 20px);
             font-weight: 500;
         }
 
         .input-group input {
             width: 100%;
-            padding: 12px;
+            padding: clamp(8px, 1.5vh, 16px);
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 18px);
             color: #333;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
@@ -89,16 +90,16 @@
 
         .submit-btn, .logout-btn {
             width: 100%;
-            padding: 12px;
+            padding: clamp(8px, 1.5vh, 16px);
             background: linear-gradient(135deg, #e63946, #b32d38);
             border: none;
             border-radius: 8px;
             color: #fff;
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 20px);
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
-            margin-top: 20px;
+            margin-top: 2vh;
         }
 
         .submit-btn:hover, .logout-btn:hover {
@@ -112,13 +113,13 @@
 
         .forgot-password {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 1.5vh;
         }
 
         .forgot-password a {
             color: #e63946;
             text-decoration: none;
-            font-size: 14px;
+            font-size: clamp(12px, 1.5vw, 16px);
         }
 
         .forgot-password a:hover {
@@ -128,7 +129,7 @@
         .navbar {
             display: none;
             background: #4b5e6a;
-            padding: 15px 0;
+            padding: clamp(10px, 2vh, 20px);
             position: fixed;
             top: 0;
             width: 100%;
@@ -140,30 +141,27 @@
             display: block;
         }
 
-        .navbar .nav-container {
-            max-width: 1200px;
+        .nav-container {
+            max-width: clamp(1000px, 90vw, 1800px);
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 2vw;
         }
 
         .navbar ul {
             list-style: none;
             display: flex;
-            gap: 20px;
-        }
-
-        .navbar ul li {
-            position: relative;
+            gap: clamp(10px, 2vw, 20px);
         }
 
         .navbar ul li a {
             color: #fff;
             text-decoration: none;
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 20px);
             font-weight: 500;
-            padding: 10px;
+            padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 16px);
             transition: color 0.3s;
         }
 
@@ -173,14 +171,16 @@
 
         .hamburger {
             display: none;
-            font-size: 24px;
+            font-size: clamp(20px, 3vw, 28px);
             color: #fff;
             cursor: pointer;
         }
 
         canvas {
+            width: 100% !important;
+            height: clamp(300px, 40vh, 600px) !important;
             max-width: 100%;
-            margin-top: 20px;
+            margin: 2vh auto;
         }
 
         @media (max-width: 768px) {
@@ -188,15 +188,18 @@
                 display: none;
                 flex-direction: column;
                 position: absolute;
-                top: 60px;
+                top: clamp(60px, 8vh, 80px);
                 left: 0;
                 width: 100%;
                 background: #4b5e6a;
-                padding: 20px;
+                padding: 2vh;
+                transition: transform 0.3s ease-in-out;
+                transform: translateY(-100%);
             }
 
             .navbar ul.active {
                 display: flex;
+                transform: translateY(0);
             }
 
             .hamburger {
@@ -204,13 +207,59 @@
             }
 
             .login-container, .dashboard-container, .page {
-                padding: 20px;
-                max-width: 90%;
+                padding: clamp(15px, 4vw, 30px);
+                max-width: 95%;
             }
 
             .logo {
-                width: 80px;
-                height: 80px;
+                width: clamp(60px, 15vw, 80px);
+            }
+
+            canvas {
+                height: clamp(250px, 35vh, 400px) !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: clamp(16px, 4vw, 24px);
+            }
+
+            .input-group input {
+                padding: clamp(6px, 1vh, 12px);
+                font-size: clamp(12px, 3vw, 16px);
+            }
+
+            .submit-btn, .logout-btn {
+                padding: clamp(6px, 1vh, 12px);
+                font-size: clamp(12px, 3vw, 16px);
+            }
+
+            canvas {
+                height: clamp(200px, 30vh, 350px) !important;
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .login-container, .dashboard-container, .page {
+                max-width: clamp(1200px, 85vw, 2000px);
+                padding: clamp(30px, 3vw, 50px);
+            }
+
+            canvas {
+                height: clamp(400px, 45vh, 800px) !important;
+            }
+
+            h2 {
+                font-size: clamp(28px, 3vw, 48px);
+            }
+
+            .input-group label, .input-group input, .submit-btn, .logout-btn {
+                font-size: clamp(18px, 2vw, 24px);
+            }
+
+            .navbar ul li a {
+                font-size: clamp(18px, 2vw, 24px);
             }
         }
     </style>
@@ -273,6 +322,10 @@
             <div class="input-group">
                 <label for="reste">Reste</label>
                 <input type="number" id="reste" placeholder="Enter Reste">
+            </div>
+            <div class="input-group">
+                <label for="mois-export">Mois</label>
+                <input type="text" id="mois-export" placeholder="Enter Mois">
             </div>
             <button class="submit-btn" onclick="submitExportData()">Submit</button>
             <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
@@ -427,18 +480,47 @@
         let currentChart = null;
         let userRole = null;
         let pageCycleInterval = null;
+        let currentPage = 'dashboard';
+
         let dataStore = {
-            export: { article: 'Article', besoin: 'Besoin', quantite: 10, reste: 10 },
-            accident: { mois: 'Mois', pourcentage: 0 },
-            incident: { mois: 'Mois', pourcentage: 0 },
-            camion: { mois: 'Mois', pourcentage: 0 },
-            transportCost: { mois: 'Mois', pourcentage: 0 },
-            exceptionnel: { mois: 'Mois', pourcentage: 0 },
-            customerService: { mois: 'Mois', pourcentage: 0 },
-            planning: { mois: 'Mois', pourcentage: 0 },
-            fiveS: { mois: 'Mois', pourcentage: 0 },
-            gemba: { mois: 'Mois', pourcentage: 0 }
+            export: [
+                { mois: 'Jan', quantite: 10, reste: 10 },
+                { mois: 'Feb', quantite: 15, reste: 8 },
+                { mois: 'Mar', quantite: 12, reste: 9 },
+                { mois: 'Apr', quantite: 20, reste: 5 },
+                { mois: 'May', quantite: 18, reste: 7 },
+                { mois: 'Jun', quantite: 14, reste: 10 }
+            ],
+            accident: [
+                { mois: 'Jan', pourcentage: 10 },
+                { mois: 'Feb', pourcentage: 15 },
+                { mois: 'Mar', pourcentage: 5 },
+                { mois: 'Apr', pourcentage: 8 },
+                { mois: 'May', pourcentage: 12 },
+                { mois: 'Jun', pourcentage: 10 },
+                { mois: 'Jul', pourcentage: 7 },
+                { mois: 'Aug', pourcentage: 9 },
+                { mois: 'Sep', pourcentage: 11 },
+                { mois: 'Oct', pourcentage: 13 },
+                { mois: 'Nov', pourcentage: 6 },
+                { mois: 'Dec', pourcentage: 8 }
+            ],
+            incident: [{ mois: 'Mois', pourcentage: 0 }],
+            camion: [{ mois: 'Mois', pourcentage: 0 }],
+            transportCost: [{ mois: 'Mois', pourcentage: 0 }],
+            exceptionnel: [{ mois: 'Mois', pourcentage: 0 }],
+            customerService: [{ mois: 'Mois', pourcentage: 0 }],
+            planning: [{ mois: 'Mois', pourcentage: 0 }],
+            fiveS: [{ mois: 'Mois', pourcentage: 0 }],
+            gemba: [{ mois: 'Mois', pourcentage: 0 }]
         };
+
+        Chart.defaults.font.size = clamp(12, window.innerWidth * 0.01, 20);
+        Chart.defaults.elements.bar.borderWidth = clamp(1, window.innerWidth * 0.001, 3);
+
+        function clamp(min, val, max) {
+            return Math.min(Math.max(val, min), max);
+        }
 
         function handleLogin() {
             const email = document.getElementById('email').value;
@@ -447,23 +529,32 @@
             const navbar = document.getElementById('navbar');
             const dashboard = document.getElementById('dashboard');
 
+            if (!loginContainer || !navbar || !dashboard) {
+                console.error('Required DOM elements missing');
+                alert('Application error: Required elements not found.');
+                return;
+            }
+
             if (email === 'logistique@wkw.com' && password === 'logistique123') {
                 userRole = 'logistique';
                 loginContainer.classList.remove('active');
                 navbar.classList.add('active');
                 dashboard.classList.add('active');
+                currentPage = 'dashboard';
                 document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'block');
                 document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'block');
                 document.querySelectorAll('.user-only').forEach(el => el.style.display = 'none');
+                console.log('Logistique: Logged in, showing dashboard');
             } else if (email === 'user@wkw.com' && password === 'userwkw') {
                 userRole = 'user';
                 loginContainer.classList.remove('active');
                 navbar.classList.remove('active');
                 dashboard.classList.add('active');
+                currentPage = 'dashboard';
                 document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'none');
                 document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'none');
                 document.querySelectorAll('.user-only').forEach(el => el.style.display = 'block');
-                showDefaultCharts();
+                console.log('User: Logged in, starting continuous page cycle');
                 startPageCycle();
             } else {
                 alert('Invalid credentials. Please try again.');
@@ -471,212 +562,388 @@
         }
 
         function handleLogout() {
-            if (userRole === 'logistique') {
-                document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
-                document.getElementById('navbar').classList.remove('active');
-                document.getElementById('login-container').classList.add('active');
-                document.getElementById('email').value = '';
-                document.getElementById('password').value = '';
-                if (currentChart) currentChart.destroy();
+            document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
+            const navbar = document.getElementById('navbar');
+            const loginContainer = document.getElementById('login-container');
+            if (navbar) navbar.classList.remove('active');
+            if (loginContainer) loginContainer.classList.add('active');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            if (currentChart) {
+                currentChart.destroy();
                 currentChart = null;
-                userRole = null;
             }
+            userRole = null;
+            currentPage = 'dashboard';
+            if (pageCycleInterval) {
+                clearInterval(pageCycleInterval);
+                pageCycleInterval = null;
+            }
+            console.log('Logged out');
         }
 
         function startPageCycle() {
-            if (userRole !== 'user') return;
+            if (userRole !== 'user') {
+                console.warn('startPageCycle called but userRole is not "user"');
+                return;
+            }
+
             const pages = ['dashboard', 'page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'];
             let currentIndex = 0;
 
             function showNextPage() {
                 document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
-                document.getElementById(pages[currentIndex]).classList.add('active');
-                if (['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(pages[currentIndex])) {
-                    showDefaultCharts();
+                currentPage = pages[currentIndex];
+                const nextPageElement = document.getElementById(currentPage);
+                
+                if (nextPageElement) {
+                    nextPageElement.classList.add('active');
+                    console.log(`User: Cycled to page ${currentPage} at ${new Date().toLocaleTimeString()}`);
+                    if (['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(currentPage)) {
+                        try {
+                            showDefaultCharts();
+                        } catch (error) {
+                            console.error(`User: Error rendering chart for ${currentPage}:`, error);
+                        }
+                    }
+                } else {
+                    console.error(`User: Page element ${currentPage} not found`);
                 }
                 currentIndex = (currentIndex + 1) % pages.length;
             }
 
+            if (pageCycleInterval) {
+                clearInterval(pageCycleInterval);
+                pageCycleInterval = null;
+            }
             showNextPage();
             pageCycleInterval = setInterval(showNextPage, 10000);
+            console.log('User: Continuous page cycling started with 10-second interval');
         }
 
         function showPage(pageId) {
-            if (userRole !== 'logistique') return;
+            if (userRole !== 'logistique') {
+                console.warn('showPage called but userRole is not "logistique"');
+                return;
+            }
             document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if (currentChart) currentChart.destroy();
-            currentChart = null;
-            document.querySelectorAll('.logistique-inputs input').forEach(input => input.value = '');
+            const pageElement = document.getElementById(pageId);
+            if (pageElement) {
+                pageElement.classList.add('active');
+                currentPage = pageId;
+                if (currentChart) {
+                    currentChart.destroy();
+                    currentChart = null;
+                }
+                document.querySelectorAll('.logistique-inputs input').forEach(input => input.value = '');
+                console.log(`Logistique: Navigated to ${pageId}`);
+            } else {
+                console.error(`Logistique: Page element ${pageId} not found`);
+            }
+        }
+
+        function validateInput(id, type, min, max) {
+            const input = document.getElementById(id);
+            if (!input) {
+                console.error(`Input element ${id} not found`);
+                alert(`Input ${id} not found`);
+                return false;
+            }
+            const value = input.value;
+            if (!value) {
+                alert(`${id} is required`);
+                return false;
+            }
+            if (type === 'number' && (isNaN(value) || value < min || value > max)) {
+                alert(`${id} must be between ${min} and ${max}`);
+                return false;
+            }
+            return true;
         }
 
         function submitExportData() {
             if (userRole !== 'logistique') return;
-            dataStore.export = {
-                article: document.getElementById('article').value || 'Article',
-                besoin: document.getElementById('besoin').value || 'Besoin',
+            if (!validateInput('quantite', 'number', 0, Infinity) || !validateInput('reste', 'number', 0, Infinity) || !validateInput('mois-export', 'text', 0, Infinity)) return;
+            const mois = document.getElementById('mois-export').value || 'Mois';
+            dataStore.export.push({
+                mois: mois,
                 quantite: parseFloat(document.getElementById('quantite').value) || 0,
                 reste: parseFloat(document.getElementById('reste').value) || 0
-            };
+            });
+            console.log('Logistique: Export data submitted', dataStore.export);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page1') showDefaultCharts();
         }
 
         function submitAccidentData() {
             if (userRole !== 'logistique') return;
-            dataStore.accident = {
-                mois: document.getElementById('mois-accident').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-accident').value) || 0
-            };
+            if (!validateInput('pourcentage-accident', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-accident').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-accident').value) || 0;
+            dataStore.accident.push({ mois, pourcentage });
+            console.log('Logistique: Accident data submitted', dataStore.accident);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page2') showDefaultCharts();
         }
 
         function submitIncidentData() {
             if (userRole !== 'logistique') return;
-            dataStore.incident = {
-                mois: document.getElementById('mois-incident').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-incident').value) || 0
-            };
+            if (!validateInput('pourcentage-incident', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-incident').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-incident').value) || 0;
+            dataStore.incident.push({ mois, pourcentage });
+            console.log('Logistique: Incident data submitted', dataStore.incident);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page3') showDefaultCharts();
         }
 
         function submitCamionData() {
             if (userRole !== 'logistique') return;
-            dataStore.camion = {
-                mois: document.getElementById('mois-camion').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-camion').value) || 0
-            };
+            if (!validateInput('pourcentage-camion', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-camion').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-camion').value) || 0;
+            dataStore.camion.push({ mois, pourcentage });
+            console.log('Logistique: Camion data submitted', dataStore.camion);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page4') showDefaultCharts();
         }
 
         function submitTransportCostData() {
             if (userRole !== 'logistique') return;
-            dataStore.transportCost = {
-                mois: document.getElementById('mois-transport-cost').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-transport-cost').value) || 0
-            };
+            if (!validateInput('pourcentage-transport-cost', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-transport-cost').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-transport-cost').value) || 0;
+            dataStore.transportCost.push({ mois, pourcentage });
+            console.log('Logistique: Transport Cost data submitted', dataStore.transportCost);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page5') showDefaultCharts();
         }
 
         function submitExceptionnelData() {
             if (userRole !== 'logistique') return;
-            dataStore.exceptionnel = {
-                mois: document.getElementById('mois-exceptionnel').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-exceptionnel').value) || 0
-            };
+            if (!validateInput('pourcentage-exceptionnel', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-exceptionnel').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-exceptionnel').value) || 0;
+            dataStore.exceptionnel.push({ mois, pourcentage });
+            console.log('Logistique: Exceptionnel data submitted', dataStore.exceptionnel);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page6') showDefaultCharts();
         }
 
         function submitCustomerServiceData() {
             if (userRole !== 'logistique') return;
-            dataStore.customerService = {
-                mois: document.getElementById('mois-customer-service').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-customer-service').value) || 0
-            };
+            if (!validateInput('pourcentage-customer-service', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-customer-service').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-customer-service').value) || 0;
+            dataStore.customerService.push({ mois, pourcentage });
+            console.log('Logistique: Customer Service data submitted', dataStore.customerService);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page7') showDefaultCharts();
         }
 
         function submitPlanningData() {
             if (userRole !== 'logistique') return;
-            dataStore.planning = {
-                mois: document.getElementById('mois-planning').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-planning').value) || 0
-            };
+            if (!validateInput('pourcentage-planning', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-planning').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-planning').value) || 0;
+            dataStore.planning.push({ mois, pourcentage });
+            console.log('Logistique: Planning data submitted', dataStore.planning);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page8') showDefaultCharts();
         }
 
         function submit5SData() {
             if (userRole !== 'logistique') return;
-            dataStore.fiveS = {
-                mois: document.getElementById('mois-5s').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-5s').value) || 0
-            };
+            if (!validateInput('pourcentage-5s', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-5s').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-5s').value) || 0;
+            dataStore.fiveS.push({ mois, pourcentage });
+            console.log('Logistique: 5S data submitted', dataStore.fiveS);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page9') showDefaultCharts();
         }
 
         function submitGembaData() {
             if (userRole !== 'logistique') return;
-            dataStore.gemba = {
-                mois: document.getElementById('mois-gemba').value || 'Mois',
-                pourcentage: parseFloat(document.getElementById('pourcentage-gemba').value) || 0
-            };
+            if (!validateInput('pourcentage-gemba', 'number', 0, 100)) return;
+            const mois = document.getElementById('mois-gemba').value || 'Mois';
+            const pourcentage = parseFloat(document.getElementById('pourcentage-gemba').value) || 0;
+            dataStore.gemba.push({ mois, pourcentage });
+            console.log('Logistique: Gemba data submitted', dataStore.gemba);
             alert('Data submitted successfully!');
-            if (userRole === 'user') showDefaultCharts();
+            if (userRole === 'user' && currentPage === 'page10') showDefaultCharts();
+        }
+
+        function getColor(value) {
+            if (value >= 80) return '#00ff00';
+            if (value >= 50) return '#ffcc00';
+            return '#ff0000';
         }
 
         function showDefaultCharts() {
-            if (userRole !== 'user') return;
-
-            if (currentChart) currentChart.destroy();
-            let ctx = document.getElementById('exportChart').getContext('2d');
-            currentChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: [dataStore.export.article, dataStore.export.besoin, 'Quantité P1', 'Reste'],
-                    datasets: [{
-                        data: [10, 10, dataStore.export.quantite, dataStore.export.reste],
-                        backgroundColor: ['#e63946', '#b32d38', '#4b5e6a', '#ddd']
-                    }]
-                },
-                options: { responsive: true }
-            });
+            if (userRole !== 'user' || !['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(currentPage)) return;
+            if (currentChart) {
+                try {
+                    currentChart.destroy();
+                } catch (error) {
+                    console.warn('User: Error destroying previous chart:', error);
+                }
+                currentChart = null;
+            }
+            console.log(`User: Attempting to render chart for ${currentPage} at ${new Date().toLocaleTimeString()} with canvas size ${document.getElementById(currentPage)?.querySelector('canvas')?.clientWidth}x${document.getElementById(currentPage)?.querySelector('canvas')?.clientHeight}`);
 
             const chartConfigs = [
-                { id: 'accidentChart', key: 'accident' },
-                { id: 'incidentChart', key: 'incident' },
-                { id: 'camionChart', key: 'camion' },
-                { id: 'transportCostChart', key: 'transportCost' },
-                { id: 'exceptionnelChart', key: 'exceptionnel' },
-                { id: 'customerServiceChart', key: 'customerService' },
-                { id: 'planningChart', key: 'planning' },
-                { id: 'fiveSChart', key: 'fiveS' },
-                { id: 'gembaChart', key: 'gemba' }
+                { id: 'exportChart', page: 'page1', key: 'export', type: 'bar' },
+                { id: 'accidentChart', page: 'page2', key: 'accident', type: 'bar' },
+                { id: 'incidentChart', page: 'page3', key: 'incident', type: 'bar' },
+                { id: 'camionChart', page: 'page4', key: 'camion', type: 'bar' },
+                { id: 'transportCostChart', page: 'page5', key: 'transportCost', type: 'bar' },
+                { id: 'exceptionnelChart', page: 'page6', key: 'exceptionnel', type: 'bar' },
+                { id: 'customerServiceChart', page: 'page7', key: 'customerService', type: 'bar' },
+                { id: 'planningChart', page: 'page8', key: 'planning', type: 'bar' },
+                { id: 'fiveSChart', page: 'page9', key: 'fiveS', type: 'bar' },
+                { id: 'gembaChart', page: 'page10', key: 'gemba', type: 'bar' }
             ];
 
-            chartConfigs.forEach(config => {
-                if (currentChart) currentChart.destroy();
-                const pourcentage = dataStore[config.key].pourcentage;
-                const color = pourcentage === 0 ? '#00ff00' : '#ff0000';
-                ctx = document.getElementById(config.id).getContext('2d');
+            const config = chartConfigs.find(c => c.page === currentPage);
+            if (!config) {
+                console.error(`User: No chart config found for ${currentPage}`);
+                return;
+            }
+
+            const canvas = document.getElementById(config.id);
+            if (!canvas) {
+                console.error(`User: Canvas element ${config.id} not found`);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error(`User: Canvas context for ${config.id} not available`);
+                return;
+            }
+
+            const fontSize = clamp(14, window.innerWidth * 0.01, 24);
+            const titleFontSize = clamp(16, window.innerWidth * 0.015, 28);
+            const barBorderWidth = clamp(1, window.innerWidth * 0.001, 3);
+
+            try {
+                const data = dataStore[config.key] && dataStore[config.key].length > 0 ? dataStore[config.key] : [{ mois: 'Mois', quantite: 0, reste: 0, pourcentage: 0 }];
+                let datasets = [];
+                if (config.key === 'export') {
+                    datasets = [
+                        {
+                            label: 'Quantité P1',
+                            data: data.map(item => item.quantite),
+                            backgroundColor: data.map(item => getColor(item.quantite)),
+                            borderColor: '#e63946',
+                            borderWidth: barBorderWidth
+                        },
+                        {
+                            label: 'Reste',
+                            data: data.map(item => item.reste),
+                            backgroundColor: data.map(item => getColor(item.reste)),
+                            borderColor: '#4b5e6a',
+                            borderWidth: barBorderWidth
+                        }
+                    ];
+                } else {
+                    datasets = [
+                        {
+                            label: 'Pourcentage',
+                            data: data.map(item => item.pourcentage),
+                            backgroundColor: data.map(item => getColor(item.pourcentage)),
+                            borderColor: '#e63946',
+                            borderWidth: barBorderWidth
+                        }
+                    ];
+                }
                 currentChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: [dataStore[config.key].mois],
-                        datasets: [
-                            {
-                                label: 'Pourcentage',
-                                data: [pourcentage],
-                                backgroundColor: color
-                            },
-                            {
-                                label: 'Objectif (0%)',
-                                data: [100 - pourcentage],
-                                backgroundColor: '#ddd'
-                            }
-                        ]
+                        labels: data.map(item => item.mois),
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
-                        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, max: 100 } }
+                        maintainAspectRatio: false,
+                        devicePixelRatio: window.devicePixelRatio,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: config.key === 'export' ? undefined : 100,
+                                title: {
+                                    display: true,
+                                    text: config.key === 'export' ? 'Valeur' : 'Pourcentage (%)',
+                                    font: { size: titleFontSize }
+                                },
+                                grid: { color: '#ddd' },
+                                ticks: { font: { size: fontSize } }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Mois',
+                                    font: { size: titleFontSize }
+                                },
+                                grid: { display: false },
+                                ticks: { font: { size: fontSize } }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: { size: fontSize },
+                                    padding: clamp(10, window.innerWidth * 0.01, 20)
+                                }
+                            },
+                            tooltip: {
+                                bodyFont: { size: fontSize },
+                                titleFont: { size: titleFontSize },
+                                callbacks: {
+                                    label: context => `${context.dataset.label}: ${context.raw}${config.key === 'export' ? '' : '%'}`
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    targetLine: {
+                                        type: 'line',
+                                        yMin: 80,
+                                        yMax: 80,
+                                        borderColor: '#00ff00',
+                                        borderWidth: clamp(1, window.innerWidth * 0.001, 3),
+                                        label: {
+                                            content: 'Target: 80%',
+                                            enabled: config.key !== 'export',
+                                            position: 'end',
+                                            font: { size: fontSize },
+                                            padding: clamp(5, window.innerWidth * 0.005, 10)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        barPercentage: 0.4,
+                        categoryPercentage: 0.8
                     }
                 });
-            });
+                console.log(`User: Rendered bar chart for ${currentPage}`, dataStore[config.key]);
+            } catch (error) {
+                console.error(`User: Failed to render chart for ${currentPage}:`, error);
+            }
         }
 
         const hamburger = document.getElementById('hamburger');
         const navMenu = document.getElementById('nav-menu');
 
-        hamburger.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
+        if (hamburger && navMenu) {
+            hamburger.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                console.log('Logistique: Hamburger menu toggled');
+            });
+        } else {
+            console.warn('Hamburger or navMenu elements not found');
+        }
     </script>
 </body>
 </html>
