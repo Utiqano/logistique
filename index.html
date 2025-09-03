@@ -6,6 +6,34 @@
     <title>WTU Logistique Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1"></script>
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz9GlQKGuExLuLBw6Len8W4Hr0NI_hhAU",
+            authDomain: "logistique-tv.firebaseapp.com",
+            projectId: "logistique-tv",
+            storageBucket: "logistique-tv.firebasestorage.app",
+            messagingSenderId: "224411853999",
+            appId: "1:224411853999:web:4cd7bc7b874daa9aa8605a",
+            measurementId: "G-PY4E8TQKH9"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Expose Firebase services to global scope
+        window.firebaseServices = { auth, db, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged, collection, addDoc, getDocs };
+    </script>
     <style>
         * {
             margin: 0;
@@ -68,7 +96,7 @@
             font-weight: 500;
         }
 
-        .input-group input {
+        .input-group input, .input-group select {
             width: 100%;
             padding: clamp(8px, 1.5vh, 16px);
             border: 1px solid #ddd;
@@ -78,7 +106,12 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .input-group input:focus {
+        .input-group select {
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .input-group input:focus, .input-group select:focus {
             outline: none;
             border-color: #e63946;
             box-shadow: 0 0 8px rgba(230, 57, 70, 0.3);
@@ -225,7 +258,7 @@
                 font-size: clamp(16px, 4vw, 24px);
             }
 
-            .input-group input {
+            .input-group input, .input-group select {
                 padding: clamp(6px, 1vh, 12px);
                 font-size: clamp(12px, 3vw, 16px);
             }
@@ -254,7 +287,7 @@
                 font-size: clamp(28px, 3vw, 48px);
             }
 
-            .input-group label, .input-group input, .submit-btn, .logout-btn {
+            .input-group label, .input-group input, .input-group select, .submit-btn, .logout-btn {
                 font-size: clamp(18px, 2vw, 24px);
             }
 
@@ -291,11 +324,11 @@
         </div>
         <div class="input-group">
             <label for="password">Password</label>
-            <input type="password" id="password" placeholder="e.g. logistique123" required>
+            <input type="password" id="password" placeholder="Enter your password" required>
         </div>
         <button class="submit-btn" onclick="handleLogin()">Sign In</button>
         <div class="forgot-password">
-            <a href="#">Forgot Password?</a>
+            <a href="#" onclick="resetPassword()">Forgot Password?</a>
         </div>
     </div>
     <div class="dashboard-container" id="dashboard">
@@ -325,7 +358,21 @@
             </div>
             <div class="input-group">
                 <label for="mois-export">Mois</label>
-                <input type="text" id="mois-export" placeholder="Enter Mois">
+                <select id="mois-export" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <button class="submit-btn" onclick="submitExportData()">Submit</button>
             <button class="logout-btn logistique-only" onclick="handleLogout()">Logout</button>
@@ -337,7 +384,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-accident">Mois</label>
-                <input type="text" id="mois-accident" placeholder="Enter Mois">
+                <select id="mois-accident" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-accident">Pourcentage</label>
@@ -353,7 +414,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-incident">Mois</label>
-                <input type="text" id="mois-incident" placeholder="Enter Mois">
+                <select id="mois-incident" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-incident">Pourcentage</label>
@@ -369,7 +444,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-camion">Mois</label>
-                <input type="text" id="mois-camion" placeholder="Enter Mois">
+                <select id="mois-camion" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-camion">Pourcentage</label>
@@ -385,7 +474,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-transport-cost">Mois</label>
-                <input type="text" id="mois-transport-cost" placeholder="Enter Mois">
+                <select id="mois-transport-cost" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-transport-cost">Pourcentage</label>
@@ -401,7 +504,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-exceptionnel">Mois</label>
-                <input type="text" id="mois-exceptionnel" placeholder="Enter Mois">
+                <select id="mois-exceptionnel" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-exceptionnel">Pourcentage</label>
@@ -417,7 +534,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-customer-service">Mois</label>
-                <input type="text" id="mois-customer-service" placeholder="Enter Mois">
+                <select id="mois-customer-service" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-customer-service">Pourcentage</label>
@@ -433,7 +564,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-planning">Mois</label>
-                <input type="text" id="mois-planning" placeholder="Enter Mois">
+                <select id="mois-planning" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-planning">Pourcentage</label>
@@ -449,7 +594,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-5s">Mois</label>
-                <input type="text" id="mois-5s" placeholder="Enter Mois">
+                <select id="mois-5s" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-5s">Pourcentage</label>
@@ -465,7 +624,21 @@
         <div class="logistique-inputs">
             <div class="input-group">
                 <label for="mois-gemba">Mois</label>
-                <input type="text" id="mois-gemba" placeholder="Enter Mois">
+                <select id="mois-gemba" required>
+                    <option value="" disabled selected>Choisir Mois</option>
+                    <option value="Janvier">Janvier</option>
+                    <option value="Février">Février</option>
+                    <option value="Mars">Mars</option>
+                    <option value="Avril">Avril</option>
+                    <option value="Mai">Mai</option>
+                    <option value="Juin">Juin</option>
+                    <option value="Juillet">Juillet</option>
+                    <option value="Août">Août</option>
+                    <option value="Septembre">Septembre</option>
+                    <option value="Octobre">Octobre</option>
+                    <option value="Novembre">Novembre</option>
+                    <option value="Décembre">Décembre</option>
+                </select>
             </div>
             <div class="input-group">
                 <label for="pourcentage-gemba">Pourcentage</label>
@@ -477,12 +650,31 @@
         <canvas id="gembaChart" class="user-only"></canvas>
     </div>
     <script>
+        // Global variables
         let currentChart = null;
         let userRole = null;
         let pageCycleInterval = null;
         let currentPage = 'dashboard';
+        let firebaseServices = null;
 
-        let dataStore = {
+        // Month mapping: French (UI) to English abbreviation (Firestore)
+        const monthMapping = {
+            'Janvier': 'Jan',
+            'Février': 'Feb',
+            'Mars': 'Mar',
+            'Avril': 'Apr',
+            'Mai': 'May',
+            'Juin': 'Jun',
+            'Juillet': 'Jul',
+            'Août': 'Aug',
+            'Septembre': 'Sep',
+            'Octobre': 'Oct',
+            'Novembre': 'Nov',
+            'Décembre': 'Dec'
+        };
+
+        // Default data structure for initialization
+        const defaultData = {
             export: [
                 { mois: 'Jan', quantite: 10, reste: 10 },
                 { mois: 'Feb', quantite: 15, reste: 8 },
@@ -505,24 +697,23 @@
                 { mois: 'Nov', pourcentage: 6 },
                 { mois: 'Dec', pourcentage: 8 }
             ],
-            incident: [{ mois: 'Mois', pourcentage: 0 }],
-            camion: [{ mois: 'Mois', pourcentage: 0 }],
-            transportCost: [{ mois: 'Mois', pourcentage: 0 }],
-            exceptionnel: [{ mois: 'Mois', pourcentage: 0 }],
-            customerService: [{ mois: 'Mois', pourcentage: 0 }],
-            planning: [{ mois: 'Mois', pourcentage: 0 }],
-            fiveS: [{ mois: 'Mois', pourcentage: 0 }],
-            gemba: [{ mois: 'Mois', pourcentage: 0 }]
+            incident: [{ mois: 'Jan', pourcentage: 0 }],
+            camion: [{ mois: 'Jan', pourcentage: 0 }],
+            transportCost: [{ mois: 'Jan', pourcentage: 0 }],
+            exceptionnel: [{ mois: 'Jan', pourcentage: 0 }],
+            customerService: [{ mois: 'Jan', pourcentage: 0 }],
+            planning: [{ mois: 'Jan', pourcentage: 0 }],
+            fiveS: [{ mois: 'Jan', pourcentage: 0 }],
+            gemba: [{ mois: 'Jan', pourcentage: 0 }]
         };
 
-        Chart.defaults.font.size = clamp(12, window.innerWidth * 0.01, 20);
-        Chart.defaults.elements.bar.borderWidth = clamp(1, window.innerWidth * 0.001, 3);
-
-        function clamp(min, val, max) {
-            return Math.min(Math.max(val, min), max);
-        }
-
+        // Function definitions in global scope
         function handleLogin() {
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { auth, signInWithEmailAndPassword } = firebaseServices;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const loginContainer = document.getElementById('login-container');
@@ -535,51 +726,384 @@
                 return;
             }
 
-            if (email === 'logistique@wkw.com' && password === 'logistique123') {
-                userRole = 'logistique';
-                loginContainer.classList.remove('active');
-                navbar.classList.add('active');
-                dashboard.classList.add('active');
-                currentPage = 'dashboard';
-                document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'block');
-                document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'block');
-                document.querySelectorAll('.user-only').forEach(el => el.style.display = 'none');
-                console.log('Logistique: Logged in, showing dashboard');
-            } else if (email === 'user@wkw.com' && password === 'userwkw') {
-                userRole = 'user';
-                loginContainer.classList.remove('active');
-                navbar.classList.remove('active');
-                dashboard.classList.add('active');
-                currentPage = 'dashboard';
-                document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'none');
-                document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'none');
-                document.querySelectorAll('.user-only').forEach(el => el.style.display = 'block');
-                console.log('User: Logged in, starting continuous page cycle');
-                startPageCycle();
-            } else {
-                alert('Invalid credentials. Please try again.');
+            signInWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    userRole = email.startsWith('logistique@') ? 'logistique' : email.startsWith('user@') ? 'user' : null;
+                    if (!userRole) {
+                        firebaseServices.signOut(auth);
+                        alert('Invalid user role. Please use a valid logistique@ or user@ email.');
+                        return;
+                    }
+                    loginContainer.classList.remove('active');
+                    dashboard.classList.add('active');
+                    currentPage = 'dashboard';
+                    if (userRole === 'logistique') {
+                        navbar.classList.add('active');
+                        document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'block');
+                        document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'block');
+                        document.querySelectorAll('.user-only').forEach(el => el.style.display = 'none');
+                        console.log('Logistique: Logged in, showing dashboard');
+                    } else {
+                        navbar.classList.remove('active');
+                        document.querySelectorAll('.logistique-only').forEach(el => el.style.display = 'none');
+                        document.querySelectorAll('.logistique-inputs').forEach(el => el.style.display = 'none');
+                        document.querySelectorAll('.user-only').forEach(el => el.style.display = 'block');
+                        console.log('User: Logged in, starting continuous page cycle');
+                        startPageCycle();
+                    }
+                    // Initialize Firestore data
+                    initializeFirestore();
+                })
+                .catch(error => {
+                    console.error('Login error:', error);
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        function resetPassword() {
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
             }
+            const { auth, sendPasswordResetEmail } = firebaseServices;
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('Please enter your email to reset password.');
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert('Password reset email sent. Check your inbox.');
+                })
+                .catch(error => {
+                    console.error('Password reset error:', error);
+                    alert('Failed to send password reset email: ' + error.message);
+                });
         }
 
         function handleLogout() {
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { auth, signOut } = firebaseServices;
+            signOut(auth)
+                .then(() => {
+                    document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
+                    const navbar = document.getElementById('navbar');
+                    const loginContainer = document.getElementById('login-container');
+                    if (navbar) navbar.classList.remove('active');
+                    if (loginContainer) loginContainer.classList.add('active');
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+                    if (currentChart) {
+                        currentChart.destroy();
+                        currentChart = null;
+                    }
+                    userRole = null;
+                    currentPage = 'dashboard';
+                    if (pageCycleInterval) {
+                        clearInterval(pageCycleInterval);
+                        pageCycleInterval = null;
+                    }
+                    console.log('Logged out');
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    alert('Logout failed: ' + error.message);
+                });
+        }
+
+        function showPage(pageId) {
+            if (userRole !== 'logistique') {
+                console.warn('showPage called but userRole is not "logistique"');
+                return;
+            }
             document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
-            const navbar = document.getElementById('navbar');
-            const loginContainer = document.getElementById('login-container');
-            if (navbar) navbar.classList.remove('active');
-            if (loginContainer) loginContainer.classList.add('active');
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
-            if (currentChart) {
-                currentChart.destroy();
-                currentChart = null;
+            const pageElement = document.getElementById(pageId);
+            if (pageElement) {
+                pageElement.classList.add('active');
+                currentPage = pageId;
+                if (currentChart) {
+                    currentChart.destroy();
+                    currentChart = null;
+                }
+                document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
+                console.log(`Logistique: Navigated to ${pageId}`);
+            } else {
+                console.error(`Logistique: Page element ${pageId} not found`);
             }
-            userRole = null;
-            currentPage = 'dashboard';
-            if (pageCycleInterval) {
-                clearInterval(pageCycleInterval);
-                pageCycleInterval = null;
+        }
+
+        function validateInput(id, type, min, max) {
+            const input = document.getElementById(id);
+            if (!input) {
+                console.error(`Input element ${id} not found`);
+                alert(`Input ${id} not found`);
+                return false;
             }
-            console.log('Logged out');
+            const value = input.value;
+            if (!value) {
+                alert(`${id} is required`);
+                return false;
+            }
+            if (type === 'number' && (isNaN(value) || value < min || value > max)) {
+                alert(`${id} must be between ${min} and ${max}`);
+                return false;
+            }
+            return true;
+        }
+
+        function validateMonth(id) {
+            const input = document.getElementById(id);
+            if (!input) {
+                console.error(`Select element ${id} not found`);
+                alert(`Month selection ${id} not found`);
+                return false;
+            }
+            const value = input.value;
+            if (!value) {
+                alert(`Please select a month for ${id}`);
+                return false;
+            }
+            return true;
+        }
+
+        function submitExportData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('quantite', 'number', 0, Infinity) || !validateInput('reste', 'number', 0, Infinity) || !validateMonth('mois-export')) return;
+            const selectedMonth = document.getElementById('mois-export').value;
+            const mois = monthMapping[selectedMonth];
+            const data = {
+                mois: mois,
+                quantite: parseFloat(document.getElementById('quantite').value) || 0,
+                reste: parseFloat(document.getElementById('reste').value) || 0,
+                article: document.getElementById('article').value || '',
+                besoin: document.getElementById('besoin').value || ''
+            };
+            addDoc(collection(db, 'export'), data)
+                .then(() => {
+                    console.log('Logistique: Export data submitted', data);
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page1') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting export data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitAccidentData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-accident', 'number', 0, 100) || !validateMonth('mois-accident')) return;
+            const selectedMonth = document.getElementById('mois-accident').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-accident').value) || 0;
+            addDoc(collection(db, 'accident'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Accident data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page2') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting accident data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitIncidentData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-incident', 'number', 0, 100) || !validateMonth('mois-incident')) return;
+            const selectedMonth = document.getElementById('mois-incident').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-incident').value) || 0;
+            addDoc(collection(db, 'incident'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Incident data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page3') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting incident data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitCamionData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-camion', 'number', 0, 100) || !validateMonth('mois-camion')) return;
+            const selectedMonth = document.getElementById('mois-camion').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-camion').value) || 0;
+            addDoc(collection(db, 'camion'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Camion data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page4') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting camion data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitTransportCostData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-transport-cost', 'number', 0, 100) || !validateMonth('mois-transport-cost')) return;
+            const selectedMonth = document.getElementById('mois-transport-cost').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-transport-cost').value) || 0;
+            addDoc(collection(db, 'transportCost'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Transport Cost data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page5') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting transport cost data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitExceptionnelData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-exceptionnel', 'number', 0, 100) || !validateMonth('mois-exceptionnel')) return;
+            const selectedMonth = document.getElementById('mois-exceptionnel').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-exceptionnel').value) || 0;
+            addDoc(collection(db, 'exceptionnel'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Exceptionnel data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page6') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting exceptionnel data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitCustomerServiceData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-customer-service', 'number', 0, 100) || !validateMonth('mois-customer-service')) return;
+            const selectedMonth = document.getElementById('mois-customer-service').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-customer-service').value) || 0;
+            addDoc(collection(db, 'customerService'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Customer Service data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page7') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting customer service data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitPlanningData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-planning', 'number', 0, 100) || !validateMonth('mois-planning')) return;
+            const selectedMonth = document.getElementById('mois-planning').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-planning').value) || 0;
+            addDoc(collection(db, 'planning'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Planning data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page8') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting planning data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submit5SData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-5s', 'number', 0, 100) || !validateMonth('mois-5s')) return;
+            const selectedMonth = document.getElementById('mois-5s').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-5s').value) || 0;
+            addDoc(collection(db, 'fiveS'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: 5S data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page9') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting 5S data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
+        }
+
+        function submitGembaData() {
+            if (userRole !== 'logistique') return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, addDoc, collection } = firebaseServices;
+            if (!validateInput('pourcentage-gemba', 'number', 0, 100) || !validateMonth('mois-gemba')) return;
+            const selectedMonth = document.getElementById('mois-gemba').value;
+            const mois = monthMapping[selectedMonth];
+            const pourcentage = parseFloat(document.getElementById('pourcentage-gemba').value) || 0;
+            addDoc(collection(db, 'gemba'), { mois, pourcentage })
+                .then(() => {
+                    console.log('Logistique: Gemba data submitted', { mois, pourcentage });
+                    alert('Data submitted successfully!');
+                    if (userRole === 'user' && currentPage === 'page10') showDefaultCharts();
+                })
+                .catch(error => {
+                    console.error('Error submitting gemba data:', error);
+                    alert('Failed to submit data: ' + error.message);
+                });
         }
 
         function startPageCycle() {
@@ -621,159 +1145,6 @@
             console.log('User: Continuous page cycling started with 10-second interval');
         }
 
-        function showPage(pageId) {
-            if (userRole !== 'logistique') {
-                console.warn('showPage called but userRole is not "logistique"');
-                return;
-            }
-            document.querySelectorAll('.dashboard-container, .page').forEach(page => page.classList.remove('active'));
-            const pageElement = document.getElementById(pageId);
-            if (pageElement) {
-                pageElement.classList.add('active');
-                currentPage = pageId;
-                if (currentChart) {
-                    currentChart.destroy();
-                    currentChart = null;
-                }
-                document.querySelectorAll('.logistique-inputs input').forEach(input => input.value = '');
-                console.log(`Logistique: Navigated to ${pageId}`);
-            } else {
-                console.error(`Logistique: Page element ${pageId} not found`);
-            }
-        }
-
-        function validateInput(id, type, min, max) {
-            const input = document.getElementById(id);
-            if (!input) {
-                console.error(`Input element ${id} not found`);
-                alert(`Input ${id} not found`);
-                return false;
-            }
-            const value = input.value;
-            if (!value) {
-                alert(`${id} is required`);
-                return false;
-            }
-            if (type === 'number' && (isNaN(value) || value < min || value > max)) {
-                alert(`${id} must be between ${min} and ${max}`);
-                return false;
-            }
-            return true;
-        }
-
-        function submitExportData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('quantite', 'number', 0, Infinity) || !validateInput('reste', 'number', 0, Infinity) || !validateInput('mois-export', 'text', 0, Infinity)) return;
-            const mois = document.getElementById('mois-export').value || 'Mois';
-            dataStore.export.push({
-                mois: mois,
-                quantite: parseFloat(document.getElementById('quantite').value) || 0,
-                reste: parseFloat(document.getElementById('reste').value) || 0
-            });
-            console.log('Logistique: Export data submitted', dataStore.export);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page1') showDefaultCharts();
-        }
-
-        function submitAccidentData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-accident', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-accident').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-accident').value) || 0;
-            dataStore.accident.push({ mois, pourcentage });
-            console.log('Logistique: Accident data submitted', dataStore.accident);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page2') showDefaultCharts();
-        }
-
-        function submitIncidentData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-incident', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-incident').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-incident').value) || 0;
-            dataStore.incident.push({ mois, pourcentage });
-            console.log('Logistique: Incident data submitted', dataStore.incident);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page3') showDefaultCharts();
-        }
-
-        function submitCamionData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-camion', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-camion').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-camion').value) || 0;
-            dataStore.camion.push({ mois, pourcentage });
-            console.log('Logistique: Camion data submitted', dataStore.camion);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page4') showDefaultCharts();
-        }
-
-        function submitTransportCostData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-transport-cost', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-transport-cost').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-transport-cost').value) || 0;
-            dataStore.transportCost.push({ mois, pourcentage });
-            console.log('Logistique: Transport Cost data submitted', dataStore.transportCost);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page5') showDefaultCharts();
-        }
-
-        function submitExceptionnelData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-exceptionnel', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-exceptionnel').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-exceptionnel').value) || 0;
-            dataStore.exceptionnel.push({ mois, pourcentage });
-            console.log('Logistique: Exceptionnel data submitted', dataStore.exceptionnel);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page6') showDefaultCharts();
-        }
-
-        function submitCustomerServiceData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-customer-service', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-customer-service').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-customer-service').value) || 0;
-            dataStore.customerService.push({ mois, pourcentage });
-            console.log('Logistique: Customer Service data submitted', dataStore.customerService);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page7') showDefaultCharts();
-        }
-
-        function submitPlanningData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-planning', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-planning').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-planning').value) || 0;
-            dataStore.planning.push({ mois, pourcentage });
-            console.log('Logistique: Planning data submitted', dataStore.planning);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page8') showDefaultCharts();
-        }
-
-        function submit5SData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-5s', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-5s').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-5s').value) || 0;
-            dataStore.fiveS.push({ mois, pourcentage });
-            console.log('Logistique: 5S data submitted', dataStore.fiveS);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page9') showDefaultCharts();
-        }
-
-        function submitGembaData() {
-            if (userRole !== 'logistique') return;
-            if (!validateInput('pourcentage-gemba', 'number', 0, 100)) return;
-            const mois = document.getElementById('mois-gemba').value || 'Mois';
-            const pourcentage = parseFloat(document.getElementById('pourcentage-gemba').value) || 0;
-            dataStore.gemba.push({ mois, pourcentage });
-            console.log('Logistique: Gemba data submitted', dataStore.gemba);
-            alert('Data submitted successfully!');
-            if (userRole === 'user' && currentPage === 'page10') showDefaultCharts();
-        }
-
         function getColor(value) {
             if (value >= 80) return '#00ff00';
             if (value >= 50) return '#ffcc00';
@@ -782,6 +1153,11 @@
 
         function showDefaultCharts() {
             if (userRole !== 'user' || !['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(currentPage)) return;
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, getDocs, collection } = firebaseServices;
             if (currentChart) {
                 try {
                     currentChart.destroy();
@@ -790,7 +1166,7 @@
                 }
                 currentChart = null;
             }
-            console.log(`User: Attempting to render chart for ${currentPage} at ${new Date().toLocaleTimeString()} with canvas size ${document.getElementById(currentPage)?.querySelector('canvas')?.clientWidth}x${document.getElementById(currentPage)?.querySelector('canvas')?.clientHeight}`);
+            console.log(`User: Attempting to render chart for ${currentPage} at ${new Date().toLocaleTimeString()}`);
 
             const chartConfigs = [
                 { id: 'exportChart', page: 'page1', key: 'export', type: 'bar' },
@@ -826,124 +1202,190 @@
             const titleFontSize = clamp(16, window.innerWidth * 0.015, 28);
             const barBorderWidth = clamp(1, window.innerWidth * 0.001, 3);
 
-            try {
-                const data = dataStore[config.key] && dataStore[config.key].length > 0 ? dataStore[config.key] : [{ mois: 'Mois', quantite: 0, reste: 0, pourcentage: 0 }];
-                let datasets = [];
-                if (config.key === 'export') {
-                    datasets = [
-                        {
-                            label: 'Quantité P1',
-                            data: data.map(item => item.quantite),
-                            backgroundColor: data.map(item => getColor(item.quantite)),
-                            borderColor: '#e63946',
-                            borderWidth: barBorderWidth
-                        },
-                        {
-                            label: 'Reste',
-                            data: data.map(item => item.reste),
-                            backgroundColor: data.map(item => getColor(item.reste)),
-                            borderColor: '#4b5e6a',
-                            borderWidth: barBorderWidth
-                        }
-                    ];
-                } else {
-                    datasets = [
-                        {
-                            label: 'Pourcentage',
-                            data: data.map(item => item.pourcentage),
-                            backgroundColor: data.map(item => getColor(item.pourcentage)),
-                            borderColor: '#e63946',
-                            borderWidth: barBorderWidth
-                        }
-                    ];
-                }
-                currentChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.map(item => item.mois),
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        devicePixelRatio: window.devicePixelRatio,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: config.key === 'export' ? undefined : 100,
-                                title: {
-                                    display: true,
-                                    text: config.key === 'export' ? 'Valeur' : 'Pourcentage (%)',
-                                    font: { size: titleFontSize }
-                                },
-                                grid: { color: '#ddd' },
-                                ticks: { font: { size: fontSize } }
+            getDocs(collection(db, config.key))
+                .then(snapshot => {
+                    const data = snapshot.empty ? [{ mois: 'Jan', quantite: 0, reste: 0, pourcentage: 0 }] : snapshot.docs.map(doc => doc.data());
+                    let datasets = [];
+                    if (config.key === 'export') {
+                        datasets = [
+                            {
+                                label: 'Quantité P1',
+                                data: data.map(item => item.quantite),
+                                backgroundColor: data.map(item => getColor(item.quantite)),
+                                borderColor: '#e63946',
+                                borderWidth: barBorderWidth
                             },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Mois',
-                                    font: { size: titleFontSize }
-                                },
-                                grid: { display: false },
-                                ticks: { font: { size: fontSize } }
+                            {
+                                label: 'Reste',
+                                data: data.map(item => item.reste),
+                                backgroundColor: data.map(item => getColor(item.reste)),
+                                borderColor: '#4b5e6a',
+                                borderWidth: barBorderWidth
                             }
+                        ];
+                    } else {
+                        datasets = [
+                            {
+                                label: 'Pourcentage',
+                                data: data.map(item => item.pourcentage),
+                                backgroundColor: data.map(item => getColor(item.pourcentage)),
+                                borderColor: '#e63946',
+                                borderWidth: barBorderWidth
+                            }
+                        ];
+                    }
+                    currentChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => {
+                                // Map English month abbreviations to French for chart display
+                                const frenchMonth = Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois;
+                                return frenchMonth;
+                            }),
+                            datasets: datasets
                         },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    font: { size: fontSize },
-                                    padding: clamp(10, window.innerWidth * 0.01, 20)
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            devicePixelRatio: window.devicePixelRatio,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: config.key === 'export' ? undefined : 100,
+                                    title: {
+                                        display: true,
+                                        text: config.key === 'export' ? 'Valeur' : 'Pourcentage (%)',
+                                        font: { size: titleFontSize }
+                                    },
+                                    grid: { color: '#ddd' },
+                                    ticks: { font: { size: fontSize } }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Mois',
+                                        font: { size: titleFontSize }
+                                    },
+                                    grid: { display: false },
+                                    ticks: { font: { size: fontSize } }
                                 }
                             },
-                            tooltip: {
-                                bodyFont: { size: fontSize },
-                                titleFont: { size: titleFontSize },
-                                callbacks: {
-                                    label: context => `${context.dataset.label}: ${context.raw}${config.key === 'export' ? '' : '%'}`
-                                }
-                            },
-                            annotation: {
-                                annotations: {
-                                    targetLine: {
-                                        type: 'line',
-                                        yMin: 80,
-                                        yMax: 80,
-                                        borderColor: '#00ff00',
-                                        borderWidth: clamp(1, window.innerWidth * 0.001, 3),
-                                        label: {
-                                            content: 'Target: 80%',
-                                            enabled: config.key !== 'export',
-                                            position: 'end',
-                                            font: { size: fontSize },
-                                            padding: clamp(5, window.innerWidth * 0.005, 10)
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: { size: fontSize },
+                                        padding: clamp(10, window.innerWidth * 0.01, 20)
+                                    }
+                                },
+                                tooltip: {
+                                    bodyFont: { size: fontSize },
+                                    titleFont: { size: titleFontSize },
+                                    callbacks: {
+                                        label: context => `${context.dataset.label}: ${context.raw}${config.key === 'export' ? '' : '%'}`
+                                    }
+                                },
+                                annotation: {
+                                    annotations: {
+                                        targetLine: {
+                                            type: 'line',
+                                            yMin: 80,
+                                            yMax: 80,
+                                            borderColor: '#00ff00',
+                                            borderWidth: clamp(1, window.innerWidth * 0.001, 3),
+                                            label: {
+                                                content: 'Target: 80%',
+                                                enabled: config.key !== 'export',
+                                                position: 'end',
+                                                font: { size: fontSize },
+                                                padding: clamp(5, window.innerWidth * 0.005, 10)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.8
+                            },
+                            barPercentage: 0.4,
+                            categoryPercentage: 0.8
+                        }
+                    });
+                    console.log(`User: Rendered bar chart for ${currentPage}`, data);
+                })
+                .catch(error => {
+                    console.error(`User: Failed to render chart for ${currentPage}:`, error);
+                    alert('Failed to render chart: ' + error.message);
+                });
+        }
+
+        // Initialize Firestore with default data if collections are empty
+        function initializeFirestore() {
+            if (!firebaseServices) {
+                alert('Firebase services not initialized. Please try again.');
+                return;
+            }
+            const { db, collection, addDoc, getDocs, auth } = firebaseServices;
+            if (!auth.currentUser || !auth.currentUser.email.startsWith('logistique@')) {
+                console.warn('Firestore initialization skipped: User is not authenticated or not a logistique user');
+                return;
+            }
+            Promise.all(Object.entries(defaultData).map(([key, data]) => {
+                return getDocs(collection(db, key)).then(snapshot => {
+                    if (snapshot.empty) {
+                        console.log(`Initializing Firestore collection: ${key}`);
+                        return Promise.all(data.map(item => 
+                            addDoc(collection(db, key), item)
+                                .catch(error => {
+                                    console.error(`Error adding document to ${key}:`, error);
+                                    throw error;
+                                })
+                        ));
+                    } else {
+                        console.log(`Collection ${key} already initialized`);
                     }
                 });
-                console.log(`User: Rendered bar chart for ${currentPage}`, dataStore[config.key]);
-            } catch (error) {
-                console.error(`User: Failed to render chart for ${currentPage}:`, error);
-            }
-        }
-
-        const hamburger = document.getElementById('hamburger');
-        const navMenu = document.getElementById('nav-menu');
-
-        if (hamburger && navMenu) {
-            hamburger.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-                console.log('Logistique: Hamburger menu toggled');
+            }))
+            .then(() => {
+                console.log('Firestore initialization completed successfully');
+            })
+            .catch(error => {
+                console.error('Error initializing Firestore:', error);
+                alert(`Failed to initialize data: ${error.message}`);
             });
-        } else {
-            console.warn('Hamburger or navMenu elements not found');
         }
+
+        function clamp(min, val, max) {
+            return Math.min(Math.max(val, min), max);
+        }
+
+        // Initialize Firebase-dependent logic
+        document.addEventListener('DOMContentLoaded', () => {
+            firebaseServices = window.firebaseServices;
+            if (!firebaseServices) {
+                console.error('Firebase services not initialized');
+                alert('Firebase services not initialized. Please refresh the page.');
+                return;
+            }
+
+            const { onAuthStateChanged, auth } = firebaseServices;
+
+            // Monitor auth state
+            onAuthStateChanged(auth, user => {
+                if (!user && currentPage !== 'login-container') {
+                    handleLogout();
+                }
+            });
+
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('nav-menu');
+
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', () => {
+                    navMenu.classList.toggle('active');
+                    console.log('Logistique: Hamburger menu toggled');
+                });
+            } else {
+                console.warn('Hamburger or navMenu elements not found');
+            }
+        });
     </script>
 </body>
 </html>
