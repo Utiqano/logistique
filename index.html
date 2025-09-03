@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WTU Logistique Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1"></script>
     <!-- Firebase SDK (Modular) -->
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
         import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDz9GlQKGuExLuLBw6Len8W4Hr0NI_hhAU",
             authDomain: "logistique-tv.firebaseapp.com",
@@ -25,13 +24,11 @@
             measurementId: "G-PY4E8TQKH9"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const analytics = getAnalytics(app);
 
-        // Expose Firebase services to global scope
         window.firebaseServices = { auth, db, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged, collection, addDoc, getDocs };
     </script>
     <style>
@@ -345,16 +342,16 @@
                 <input type="text" id="article" placeholder="Enter Article">
             </div>
             <div class="input-group">
-                <label for="besoin">Besoin</label>
-                <input type="text" id="besoin" placeholder="Enter Besoin">
+                <label for="besoin">Quantité Planifiée</label>
+                <input type="number" id="besoin" placeholder="Enter Quantité Planifiée" min="1">
             </div>
             <div class="input-group">
-                <label for="quantite">Quantité P1</label>
-                <input type="number" id="quantite" placeholder="Enter Quantité P1">
+                <label for="quantite">Quantité Réalisée</label>
+                <input type="number" id="quantite" placeholder="Enter Quantité Réalisée" min="0">
             </div>
             <div class="input-group">
                 <label for="reste">Reste</label>
-                <input type="number" id="reste" placeholder="Enter Reste">
+                <input type="number" id="reste" placeholder="Enter Reste" min="0">
             </div>
             <div class="input-group">
                 <label for="mois-export">Mois</label>
@@ -676,12 +673,12 @@
         // Default data structure for initialization
         const defaultData = {
             export: [
-                { mois: 'Jan', quantite: 10, reste: 10 },
-                { mois: 'Feb', quantite: 15, reste: 8 },
-                { mois: 'Mar', quantite: 12, reste: 9 },
-                { mois: 'Apr', quantite: 20, reste: 5 },
-                { mois: 'May', quantite: 18, reste: 7 },
-                { mois: 'Jun', quantite: 14, reste: 10 }
+                { mois: 'Jan', article: 'Item1', besoin: 100, quantite: 80, reste: 20 },
+                { mois: 'Feb', article: 'Item2', besoin: 120, quantite: 90, reste: 30 },
+                { mois: 'Mar', article: 'Item3', besoin: 150, quantite: 120, reste: 30 },
+                { mois: 'Apr', article: 'Item4', besoin: 200, quantite: 180, reste: 20 },
+                { mois: 'May', article: 'Item5', besoin: 180, quantite: 150, reste: 30 },
+                { mois: 'Jun', article: 'Item6', besoin: 140, quantite: 100, reste: 40 }
             ],
             accident: [
                 { mois: 'Jan', pourcentage: 10 },
@@ -752,7 +749,6 @@
                         console.log('User: Logged in, starting continuous page cycle');
                         startPageCycle();
                     }
-                    // Initialize Firestore data
                     initializeFirestore();
                 })
                 .catch(error => {
@@ -848,8 +844,8 @@
                 alert(`${id} is required`);
                 return false;
             }
-            if (type === 'number' && (isNaN(value) || value < min || value > max)) {
-                alert(`${id} must be between ${min} and ${max}`);
+            if (type === 'number' && (isNaN(value) || value < min || (max !== undefined && value > max))) {
+                alert(`${id} must be between ${min} and ${max !== undefined ? max : 'infinity'}`);
                 return false;
             }
             return true;
@@ -877,20 +873,31 @@
                 return;
             }
             const { db, addDoc, collection } = firebaseServices;
-            if (!validateInput('quantite', 'number', 0, Infinity) || !validateInput('reste', 'number', 0, Infinity) || !validateMonth('mois-export')) return;
+            if (!validateInput('besoin', 'number', 1, undefined) || 
+                !validateInput('quantite', 'number', 0, undefined) || 
+                !validateInput('reste', 'number', 0, undefined) || 
+                !validateMonth('mois-export')) return;
+            const besoin = parseFloat(document.getElementById('besoin').value);
+            const quantite = parseFloat(document.getElementById('quantite').value);
+            const reste = parseFloat(document.getElementById('reste').value);
+            if (quantite + reste > besoin) {
+                alert('La somme de Quantité Réalisée et Reste ne peut pas dépasser Quantité Planifiée');
+                return;
+            }
             const selectedMonth = document.getElementById('mois-export').value;
             const mois = monthMapping[selectedMonth];
             const data = {
                 mois: mois,
-                quantite: parseFloat(document.getElementById('quantite').value) || 0,
-                reste: parseFloat(document.getElementById('reste').value) || 0,
                 article: document.getElementById('article').value || '',
-                besoin: document.getElementById('besoin').value || ''
+                besoin: besoin,
+                quantite: quantite,
+                reste: reste
             };
             addDoc(collection(db, 'export'), data)
                 .then(() => {
                     console.log('Logistique: Export data submitted', data);
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page1') showDefaultCharts();
                 })
                 .catch(error => {
@@ -914,6 +921,7 @@
                 .then(() => {
                     console.log('Logistique: Accident data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page2') showDefaultCharts();
                 })
                 .catch(error => {
@@ -937,6 +945,7 @@
                 .then(() => {
                     console.log('Logistique: Incident data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page3') showDefaultCharts();
                 })
                 .catch(error => {
@@ -960,6 +969,7 @@
                 .then(() => {
                     console.log('Logistique: Camion data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page4') showDefaultCharts();
                 })
                 .catch(error => {
@@ -983,6 +993,7 @@
                 .then(() => {
                     console.log('Logistique: Transport Cost data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page5') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1006,6 +1017,7 @@
                 .then(() => {
                     console.log('Logistique: Exceptionnel data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page6') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1029,6 +1041,7 @@
                 .then(() => {
                     console.log('Logistique: Customer Service data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page7') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1052,6 +1065,7 @@
                 .then(() => {
                     console.log('Logistique: Planning data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page8') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1075,6 +1089,7 @@
                 .then(() => {
                     console.log('Logistique: 5S data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page9') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1098,6 +1113,7 @@
                 .then(() => {
                     console.log('Logistique: Gemba data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
+                    document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                     if (userRole === 'user' && currentPage === 'page10') showDefaultCharts();
                 })
                 .catch(error => {
@@ -1169,16 +1185,76 @@
             console.log(`User: Attempting to render chart for ${currentPage} at ${new Date().toLocaleTimeString()}`);
 
             const chartConfigs = [
-                { id: 'exportChart', page: 'page1', key: 'export', type: 'bar' },
-                { id: 'accidentChart', page: 'page2', key: 'accident', type: 'bar' },
-                { id: 'incidentChart', page: 'page3', key: 'incident', type: 'bar' },
-                { id: 'camionChart', page: 'page4', key: 'camion', type: 'bar' },
-                { id: 'transportCostChart', page: 'page5', key: 'transportCost', type: 'bar' },
-                { id: 'exceptionnelChart', page: 'page6', key: 'exceptionnel', type: 'bar' },
-                { id: 'customerServiceChart', page: 'page7', key: 'customerService', type: 'bar' },
-                { id: 'planningChart', page: 'page8', key: 'planning', type: 'bar' },
-                { id: 'fiveSChart', page: 'page9', key: 'fiveS', type: 'bar' },
-                { id: 'gembaChart', page: 'page10', key: 'gemba', type: 'bar' }
+                { 
+                    id: 'exportChart', 
+                    page: 'page1', 
+                    key: 'export', 
+                    type: 'bar', 
+                    title: 'Avancement Export: Réalisation vs Planifié (%)'
+                },
+                { 
+                    id: 'accidentChart', 
+                    page: 'page2', 
+                    key: 'accident', 
+                    type: 'bar', 
+                    title: 'Accident de Travail: Taux par Mois (%)'
+                },
+                { 
+                    id: 'incidentChart', 
+                    page: 'page3', 
+                    key: 'incident', 
+                    type: 'bar', 
+                    title: 'Incident Logistique: Taux par Mois (%)'
+                },
+                { 
+                    id: 'camionChart', 
+                    page: 'page4', 
+                    key: 'camion', 
+                    type: 'bar', 
+                    title: 'Suivi Remplissage Camion: Taux par Mois (%)'
+                },
+                { 
+                    id: 'transportCostChart', 
+                    page: 'page5', 
+                    key: 'transportCost', 
+                    type: 'bar', 
+                    title: 'Coût Total du Transport vs Ventes (%)'
+                },
+                { 
+                    id: 'exceptionnelChart', 
+                    page: 'page6', 
+                    key: 'exceptionnel', 
+                    type: 'bar', 
+                    title: 'Coût Exceptionnel du Transport (%)'
+                },
+                { 
+                    id: 'customerServiceChart', 
+                    page: 'page7', 
+                    key: 'customerService', 
+                    type: 'bar', 
+                    title: 'Taux de Service Client (%)'
+                },
+                { 
+                    id: 'planningChart', 
+                    page: 'page8', 
+                    key: 'planning', 
+                    type: 'bar', 
+                    title: 'Taux de Respect du Planning (%)'
+                },
+                { 
+                    id: 'fiveSChart', 
+                    page: 'page9', 
+                    key: 'fiveS', 
+                    type: 'bar', 
+                    title: 'Suivi 5S: Conformité par Mois (%)'
+                },
+                { 
+                    id: 'gembaChart', 
+                    page: 'page10', 
+                    key: 'gemba', 
+                    type: 'bar', 
+                    title: 'Suivi Gemba OJT: Progression par Mois (%)'
+                }
             ];
 
             const config = chartConfigs.find(c => c.page === currentPage);
@@ -1204,41 +1280,74 @@
 
             getDocs(collection(db, config.key))
                 .then(snapshot => {
-                    const data = snapshot.empty ? [{ mois: 'Jan', quantite: 0, reste: 0, pourcentage: 0 }] : snapshot.docs.map(doc => doc.data());
+                    const data = snapshot.empty ? [{ mois: 'Jan', quantite: 0, reste: 0, pourcentage: 0, besoin: 0, article: '' }] : snapshot.docs.map(doc => doc.data());
                     let datasets = [];
+                    let tooltipCallbacks = {};
+
                     if (config.key === 'export') {
                         datasets = [
                             {
-                                label: 'Quantité P1',
-                                data: data.map(item => item.quantite),
-                                backgroundColor: data.map(item => getColor(item.quantite)),
+                                label: 'Quantité Réalisée (%)',
+                                data: data.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
                                 borderColor: '#e63946',
                                 borderWidth: barBorderWidth
                             },
                             {
-                                label: 'Reste',
-                                data: data.map(item => item.reste),
-                                backgroundColor: data.map(item => getColor(item.reste)),
+                                label: 'Reste (%)',
+                                data: data.map(item => item.besoin > 0 ? (item.reste / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.reste / item.besoin * 100) : 0)),
                                 borderColor: '#4b5e6a',
+                                borderWidth: barBorderWidth
+                            },
+                            {
+                                label: 'Taux de Réalisation (%)',
+                                data: data.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
+                                borderColor: '#00cc00',
                                 borderWidth: barBorderWidth
                             }
                         ];
+                        tooltipCallbacks = {
+                            title: context => {
+                                const item = data[context[0].dataIndex];
+                                return `Mois: ${Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois}`;
+                            },
+                            label: context => {
+                                const item = data[context.dataIndex];
+                                const percentage = item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0;
+                                return [
+                                    `Article: ${item.article || 'N/A'}`,
+                                    `Planifié: ${item.besoin || 0}`,
+                                    `Réalisé: ${item.quantite || 0}`,
+                                    `Reste: ${item.reste || 0}`,
+                                    `Taux de Réalisation: ${percentage}%`
+                                ];
+                            }
+                        };
                     } else {
                         datasets = [
                             {
-                                label: 'Pourcentage',
+                                label: 'Pourcentage (%)',
                                 data: data.map(item => item.pourcentage),
                                 backgroundColor: data.map(item => getColor(item.pourcentage)),
                                 borderColor: '#e63946',
                                 borderWidth: barBorderWidth
                             }
                         ];
+                        tooltipCallbacks = {
+                            title: context => {
+                                const item = data[context[0].dataIndex];
+                                return `Mois: ${Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois}`;
+                            },
+                            label: context => `${context.dataset.label}: ${context.raw}%`
+                        };
                     }
+
                     currentChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: data.map(item => {
-                                // Map English month abbreviations to French for chart display
                                 const frenchMonth = Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois;
                                 return frenchMonth;
                             }),
@@ -1251,14 +1360,17 @@
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    max: config.key === 'export' ? undefined : 100,
+                                    max: 100,
                                     title: {
                                         display: true,
-                                        text: config.key === 'export' ? 'Valeur' : 'Pourcentage (%)',
+                                        text: 'Pourcentage (%)',
                                         font: { size: titleFontSize }
                                     },
                                     grid: { color: '#ddd' },
-                                    ticks: { font: { size: fontSize } }
+                                    ticks: { 
+                                        font: { size: fontSize },
+                                        callback: value => `${value}%`
+                                    }
                                 },
                                 x: {
                                     title: {
@@ -1278,12 +1390,23 @@
                                         padding: clamp(10, window.innerWidth * 0.01, 20)
                                     }
                                 },
+                                title: {
+                                    display: true,
+                                    text: config.title,
+                                    font: { size: titleFontSize },
+                                    padding: clamp(10, window.innerWidth * 0.01, 20)
+                                },
                                 tooltip: {
                                     bodyFont: { size: fontSize },
                                     titleFont: { size: titleFontSize },
-                                    callbacks: {
-                                        label: context => `${context.dataset.label}: ${context.raw}${config.key === 'export' ? '' : '%'}`
-                                    }
+                                    callbacks: tooltipCallbacks
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'top',
+                                    font: { size: fontSize },
+                                    formatter: (value, context) => `${value}%`,
+                                    color: '#333'
                                 },
                                 annotation: {
                                     annotations: {
@@ -1294,8 +1417,8 @@
                                             borderColor: '#00ff00',
                                             borderWidth: clamp(1, window.innerWidth * 0.001, 3),
                                             label: {
-                                                content: 'Target: 80%',
-                                                enabled: config.key !== 'export',
+                                                content: 'Cible: 80%',
+                                                enabled: true,
                                                 position: 'end',
                                                 font: { size: fontSize },
                                                 padding: clamp(5, window.innerWidth * 0.005, 10)
@@ -1304,9 +1427,10 @@
                                     }
                                 }
                             },
-                            barPercentage: 0.4,
-                            categoryPercentage: 0.8
-                        }
+                            barPercentage: config.key === 'export' ? 0.3 : 0.4,
+                            categoryPercentage: config.key === 'export' ? 0.9 : 0.8
+                        },
+                        plugins: [ChartDataLabels]
                     });
                     console.log(`User: Rendered bar chart for ${currentPage}`, data);
                 })
@@ -1316,7 +1440,6 @@
                 });
         }
 
-        // Initialize Firestore with default data if collections are empty
         function initializeFirestore() {
             if (!firebaseServices) {
                 alert('Firebase services not initialized. Please try again.');
@@ -1356,7 +1479,6 @@
             return Math.min(Math.max(val, min), max);
         }
 
-        // Initialize Firebase-dependent logic
         document.addEventListener('DOMContentLoaded', () => {
             firebaseServices = window.firebaseServices;
             if (!firebaseServices) {
@@ -1367,7 +1489,6 @@
 
             const { onAuthStateChanged, auth } = firebaseServices;
 
-            // Monitor auth state
             onAuthStateChanged(auth, user => {
                 if (!user && currentPage !== 'login-container') {
                     handleLogout();
