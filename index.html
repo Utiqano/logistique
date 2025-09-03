@@ -675,33 +675,53 @@
             export: [
                 { mois: 'Jan', article: 'Item1', besoin: 100, quantite: 80, reste: 20 },
                 { mois: 'Feb', article: 'Item2', besoin: 120, quantite: 90, reste: 30 },
-                { mois: 'Mar', article: 'Item3', besoin: 150, quantite: 120, reste: 30 },
-                { mois: 'Apr', article: 'Item4', besoin: 200, quantite: 180, reste: 20 },
-                { mois: 'May', article: 'Item5', besoin: 180, quantite: 150, reste: 30 },
-                { mois: 'Jun', article: 'Item6', besoin: 140, quantite: 100, reste: 40 }
+                { mois: 'Mar', article: 'Item3', besoin: 150, quantite: 120, reste: 30 }
             ],
             accident: [
                 { mois: 'Jan', pourcentage: 10 },
                 { mois: 'Feb', pourcentage: 15 },
-                { mois: 'Mar', pourcentage: 5 },
-                { mois: 'Apr', pourcentage: 8 },
-                { mois: 'May', pourcentage: 12 },
-                { mois: 'Jun', pourcentage: 10 },
-                { mois: 'Jul', pourcentage: 7 },
-                { mois: 'Aug', pourcentage: 9 },
-                { mois: 'Sep', pourcentage: 11 },
-                { mois: 'Oct', pourcentage: 13 },
-                { mois: 'Nov', pourcentage: 6 },
-                { mois: 'Dec', pourcentage: 8 }
+                { mois: 'Mar', pourcentage: 5 }
             ],
-            incident: [{ mois: 'Jan', pourcentage: 0 }],
-            camion: [{ mois: 'Jan', pourcentage: 0 }],
-            transportCost: [{ mois: 'Jan', pourcentage: 0 }],
-            exceptionnel: [{ mois: 'Jan', pourcentage: 0 }],
-            customerService: [{ mois: 'Jan', pourcentage: 0 }],
-            planning: [{ mois: 'Jan', pourcentage: 0 }],
-            fiveS: [{ mois: 'Jan', pourcentage: 0 }],
-            gemba: [{ mois: 'Jan', pourcentage: 0 }]
+            incident: [
+                { mois: 'Jan', pourcentage: 8 },
+                { mois: 'Feb', pourcentage: 12 },
+                { mois: 'Mar', pourcentage: 10 }
+            ],
+            camion: [
+                { mois: 'Jan', pourcentage: 75 },
+                { mois: 'Feb', pourcentage: 80 },
+                { mois: 'Mar', pourcentage: 85 }
+            ],
+            transportCost: [
+                { mois: 'Jan', pourcentage: 6 },
+                { mois: 'Feb', pourcentage: 7 },
+                { mois: 'Mar', pourcentage: 5 }
+            ],
+            exceptionnel: [
+                { mois: 'Jan', pourcentage: 2 },
+                { mois: 'Feb', pourcentage: 3 },
+                { mois: 'Mar', pourcentage: 2.5 }
+            ],
+            customerService: [
+                { mois: 'Jan', pourcentage: 90 },
+                { mois: 'Feb', pourcentage: 88 },
+                { mois: 'Mar', pourcentage: 92 }
+            ],
+            planning: [
+                { mois: 'Jan', pourcentage: 85 },
+                { mois: 'Feb', pourcentage: 90 },
+                { mois: 'Mar', pourcentage: 87 }
+            ],
+            fiveS: [
+                { mois: 'Jan', pourcentage: 70 },
+                { mois: 'Feb', pourcentage: 75 },
+                { mois: 'Mar', pourcentage: 80 }
+            ],
+            gemba: [
+                { mois: 'Jan', pourcentage: 65 },
+                { mois: 'Feb', pourcentage: 70 },
+                { mois: 'Mar', pourcentage: 68 }
+            ]
         };
 
         // Function definitions in global scope
@@ -827,6 +847,7 @@
                 }
                 document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
                 console.log(`Logistique: Navigated to ${pageId}`);
+                showDefaultCharts(); // Render chart immediately for logistique user
             } else {
                 console.error(`Logistique: Page element ${pageId} not found`);
             }
@@ -840,7 +861,7 @@
                 return false;
             }
             const value = input.value;
-            if (!value) {
+            if (!value && id !== 'article') {
                 alert(`${id} is required`);
                 return false;
             }
@@ -888,7 +909,7 @@
             const mois = monthMapping[selectedMonth];
             const data = {
                 mois: mois,
-                article: document.getElementById('article').value || '',
+                article: document.getElementById('article').value || 'N/A',
                 besoin: besoin,
                 quantite: quantite,
                 reste: reste
@@ -898,7 +919,7 @@
                     console.log('Logistique: Export data submitted', data);
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page1') showDefaultCharts();
+                    if (currentPage === 'page1') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting export data:', error);
@@ -922,7 +943,7 @@
                     console.log('Logistique: Accident data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page2') showDefaultCharts();
+                    if (currentPage === 'page2') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting accident data:', error);
@@ -946,7 +967,7 @@
                     console.log('Logistique: Incident data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page3') showDefaultCharts();
+                    if (currentPage === 'page3') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting incident data:', error);
@@ -970,7 +991,7 @@
                     console.log('Logistique: Camion data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page4') showDefaultCharts();
+                    if (currentPage === 'page4') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting camion data:', error);
@@ -994,7 +1015,7 @@
                     console.log('Logistique: Transport Cost data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page5') showDefaultCharts();
+                    if (currentPage === 'page5') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting transport cost data:', error);
@@ -1018,7 +1039,7 @@
                     console.log('Logistique: Exceptionnel data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page6') showDefaultCharts();
+                    if (currentPage === 'page6') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting exceptionnel data:', error);
@@ -1042,7 +1063,7 @@
                     console.log('Logistique: Customer Service data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page7') showDefaultCharts();
+                    if (currentPage === 'page7') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting customer service data:', error);
@@ -1066,7 +1087,7 @@
                     console.log('Logistique: Planning data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page8') showDefaultCharts();
+                    if (currentPage === 'page8') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting planning data:', error);
@@ -1090,7 +1111,7 @@
                     console.log('Logistique: 5S data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page9') showDefaultCharts();
+                    if (currentPage === 'page9') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting 5S data:', error);
@@ -1114,7 +1135,7 @@
                     console.log('Logistique: Gemba data submitted', { mois, pourcentage });
                     alert('Data submitted successfully!');
                     document.querySelectorAll('.logistique-inputs input, .logistique-inputs select').forEach(input => input.value = '');
-                    if (userRole === 'user' && currentPage === 'page10') showDefaultCharts();
+                    if (currentPage === 'page10') showDefaultCharts();
                 })
                 .catch(error => {
                     console.error('Error submitting gemba data:', error);
@@ -1168,7 +1189,6 @@
         }
 
         function showDefaultCharts() {
-            if (userRole !== 'user' || !['page1', 'page2', 'page3', 'page4', 'page5', 'page6', 'page7', 'page8', 'page9', 'page10'].includes(currentPage)) return;
             if (!firebaseServices) {
                 alert('Firebase services not initialized. Please try again.');
                 return;
@@ -1182,7 +1202,7 @@
                 }
                 currentChart = null;
             }
-            console.log(`User: Attempting to render chart for ${currentPage} at ${new Date().toLocaleTimeString()}`);
+            console.log(`Rendering chart for ${currentPage} at ${new Date().toLocaleTimeString()}`);
 
             const chartConfigs = [
                 { 
@@ -1259,18 +1279,18 @@
 
             const config = chartConfigs.find(c => c.page === currentPage);
             if (!config) {
-                console.error(`User: No chart config found for ${currentPage}`);
+                console.error(`No chart config found for ${currentPage}`);
                 return;
             }
 
             const canvas = document.getElementById(config.id);
             if (!canvas) {
-                console.error(`User: Canvas element ${config.id} not found`);
+                console.error(`Canvas element ${config.id} not found`);
                 return;
             }
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-                console.error(`User: Canvas context for ${config.id} not available`);
+                console.error(`Canvas context for ${config.id} not available`);
                 return;
             }
 
@@ -1280,7 +1300,30 @@
 
             getDocs(collection(db, config.key))
                 .then(snapshot => {
-                    const data = snapshot.empty ? [{ mois: 'Jan', quantite: 0, reste: 0, pourcentage: 0, besoin: 0, article: '' }] : snapshot.docs.map(doc => doc.data());
+                    let data = snapshot.empty ? defaultData[config.key] : snapshot.docs.map(doc => doc.data());
+                    // Ensure unique months by aggregating data
+                    const aggregatedData = Object.values(monthMapping).map(mois => {
+                        const monthData = data.filter(item => item.mois === mois);
+                        if (config.key === 'export') {
+                            // For export, sum quantities for the same month
+                            const totalBesoin = monthData.reduce((sum, item) => sum + (item.besoin || 0), 0);
+                            const totalQuantite = monthData.reduce((sum, item) => sum + (item.quantite || 0), 0);
+                            const totalReste = monthData.reduce((sum, item) => sum + (item.reste || 0), 0);
+                            const articles = monthData.map(item => item.article || 'N/A').join(', ');
+                            return { mois, besoin: totalBesoin, quantite: totalQuantite, reste: totalReste, article: articles };
+                        } else {
+                            // For other charts, average the percentage for the same month
+                            const avgPourcentage = monthData.length > 0 
+                                ? monthData.reduce((sum, item) => sum + (item.pourcentage || 0), 0) / monthData.length
+                                : 0;
+                            return { mois, pourcentage: avgPourcentage };
+                        }
+                    }).filter(item => item.mois); // Remove undefined months
+
+                    // Sort by month order
+                    const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    aggregatedData.sort((a, b) => monthOrder.indexOf(a.mois) - monthOrder.indexOf(b.mois));
+
                     let datasets = [];
                     let tooltipCallbacks = {};
 
@@ -1288,36 +1331,36 @@
                         datasets = [
                             {
                                 label: 'Quantité Réalisée (%)',
-                                data: data.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
-                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
+                                data: aggregatedData.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: aggregatedData.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
                                 borderColor: '#e63946',
                                 borderWidth: barBorderWidth
                             },
                             {
                                 label: 'Reste (%)',
-                                data: data.map(item => item.besoin > 0 ? (item.reste / item.besoin * 100).toFixed(1) : 0),
-                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.reste / item.besoin * 100) : 0)),
+                                data: aggregatedData.map(item => item.besoin > 0 ? (item.reste / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: aggregatedData.map(item => getColor(item.besoin > 0 ? (item.reste / item.besoin * 100) : 0)),
                                 borderColor: '#4b5e6a',
                                 borderWidth: barBorderWidth
                             },
                             {
                                 label: 'Taux de Réalisation (%)',
-                                data: data.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
-                                backgroundColor: data.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
+                                data: aggregatedData.map(item => item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0),
+                                backgroundColor: aggregatedData.map(item => getColor(item.besoin > 0 ? (item.quantite / item.besoin * 100) : 0)),
                                 borderColor: '#00cc00',
                                 borderWidth: barBorderWidth
                             }
                         ];
                         tooltipCallbacks = {
                             title: context => {
-                                const item = data[context[0].dataIndex];
+                                const item = aggregatedData[context[0].dataIndex];
                                 return `Mois: ${Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois}`;
                             },
                             label: context => {
-                                const item = data[context.dataIndex];
+                                const item = aggregatedData[context.dataIndex];
                                 const percentage = item.besoin > 0 ? (item.quantite / item.besoin * 100).toFixed(1) : 0;
                                 return [
-                                    `Article: ${item.article || 'N/A'}`,
+                                    `Articles: ${item.article || 'N/A'}`,
                                     `Planifié: ${item.besoin || 0}`,
                                     `Réalisé: ${item.quantite || 0}`,
                                     `Reste: ${item.reste || 0}`,
@@ -1329,28 +1372,25 @@
                         datasets = [
                             {
                                 label: 'Pourcentage (%)',
-                                data: data.map(item => item.pourcentage),
-                                backgroundColor: data.map(item => getColor(item.pourcentage)),
+                                data: aggregatedData.map(item => item.pourcentage.toFixed(1)),
+                                backgroundColor: aggregatedData.map(item => getColor(item.pourcentage)),
                                 borderColor: '#e63946',
                                 borderWidth: barBorderWidth
                             }
                         ];
                         tooltipCallbacks = {
                             title: context => {
-                                const item = data[context[0].dataIndex];
+                                const item = aggregatedData[context[0].dataIndex];
                                 return `Mois: ${Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois}`;
                             },
-                            label: context => `${context.dataset.label}: ${context.raw}%`
+                            label: context => `Pourcentage: ${context.raw}%`
                         };
                     }
 
                     currentChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: data.map(item => {
-                                const frenchMonth = Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois;
-                                return frenchMonth;
-                            }),
+                            labels: aggregatedData.map(item => Object.keys(monthMapping).find(key => monthMapping[key] === item.mois) || item.mois),
                             datasets: datasets
                         },
                         options: {
@@ -1432,10 +1472,10 @@
                         },
                         plugins: [ChartDataLabels]
                     });
-                    console.log(`User: Rendered bar chart for ${currentPage}`, data);
+                    console.log(`Rendered bar chart for ${currentPage}`, aggregatedData);
                 })
                 .catch(error => {
-                    console.error(`User: Failed to render chart for ${currentPage}:`, error);
+                    console.error(`Failed to render chart for ${currentPage}:`, error);
                     alert('Failed to render chart: ' + error.message);
                 });
         }
